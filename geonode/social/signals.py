@@ -49,19 +49,7 @@ if "actstream" in settings.INSTALLED_APPS:
 def activity_post_modify_object(sender, instance, created=None, **kwargs):
     """
     Creates new activities after a Map, Dataset, or Document is created/updated/deleted.
-
-    action_settings:
-    actor: the user who performed the activity
-    action_object: the object that received the action
-    created_verb: a translatable verb that is used when an object is created
-    deleted_verb: a translatable verb that is used when an object is deleted
-    object_name: the title of the object that is used to keep information about the object after it is deleted
-    target: the target of an action
-    updated_verb: a translatable verb that is used when an object is updated
-
-    raw_action: a constant that describes the type of action performed (values should be: created, uploaded, deleted)
     """
-
     verb = None
     obj_type = instance.__class__._meta.object_name.lower()
     action_settings = defaultdict(
@@ -93,6 +81,13 @@ def activity_post_modify_object(sender, instance, created=None, **kwargs):
         action_settings["document"].update(created_verb=_("uploaded"))
     except Exception as e:
         logger.exception(e)
+
+    if obj_type == "dataset" and created:
+        # Aqui você adiciona a lógica para perguntar ao usuário sobre a conversão
+        if user_wants_conversion():
+            # Se o usuário desejar a conversão, converta para EPSG:4764
+            convert_to_epsg(instance, 'EPSG:4764')
+            move_to_workspace(instance, 'INDE')
 
     if obj_type not in ["document", "dataset", "map"]:
         try:
@@ -177,3 +172,37 @@ def rating_post_save(instance, sender, created, **kwargs):
         notice_type_label,
         {"resource": instance.content_object, "user": instance.user, "rating": instance.rating},
     )
+
+def user_wants_conversion():
+    # Aqui você pode interagir com o front-end, por exemplo, usando um formulário ou uma mensagem
+    # Temporariamente, pode retornar True ou False
+    return True  # Assumindo que o usuário sempre deseja, como exemplo
+
+def convert_to_epsg(layer_instance, target_epsg):
+    from osgeo import ogr, osr
+    
+    # Acesse o arquivo do dataset
+    filepath = layer_instance.filepath
+
+    # Abra o dataset com OGR
+    source = ogr.Open(filepath)
+    source_layer = source.GetLayer()
+
+    # Defina o sistema de coordenadas de destino
+    target_srs = osr.SpatialReference()
+    target_srs.ImportFromEPSG(int(target_epsg))
+
+    # Aqui você implementa a lógica de reprojeção e salva o dataset reprojetado
+    # Atualize o caminho no GeoNode depois que o dataset for salvo.
+
+def move_to_workspace(layer_instance, workspace_name):
+    from geoserver.catalog import Catalog
+    
+    cat = Catalog("http://localhost:8080/geoserver/rest", "admin", "geoserver_password")
+    layer = cat.get_layer(layer_instance.name)
+    workspace = cat.get_workspace(workspace_name)
+    if workspace:
+        layer.workspace = workspace
+        cat.save(layer)
+    else:
+        logger.error(f"Workspace {workspace_name} não encontrado.")
