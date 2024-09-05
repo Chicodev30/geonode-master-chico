@@ -1083,7 +1083,7 @@ UPLOADER = {
         "TIME_ENABLED": ast.literal_eval(os.getenv("TIME_ENABLED", "False")),
         "MOSAIC_ENABLED": ast.literal_eval(os.getenv("MOSAIC_ENABLED", "False")),
     },
-    "SUPPORTED_CRS": ["EPSG:4326", "EPSG:3785", "EPSG:3857", "EPSG:32647", "EPSG:32736", "EPSG:4674","EPSG: 100018"],
+    "SUPPORTED_CRS": ["EPSG:4326", "EPSG:3785", "EPSG:3857", "EPSG:32647", "EPSG:32736", "EPSG:4674","EPSG:100018"],
     "SUPPORTED_EXT": [".shp", ".csv", ".kml", ".kmz", ".json", ".geojson", ".tif", ".tiff", ".geotiff", ".gml", ".xml"],
 }
 
@@ -1095,7 +1095,7 @@ EPSG_CODE_MATCHES = {
     "EPSG:32647": "(32647) WGS 84 / UTM zone 47N",
     "EPSG:32736": "(32736) WGS 84 / UTM zone 36S",
     "EPSG:4674": "(4674) World Mercator",
-    "EPSG: 100018": "(100018) TM-POA",
+    "EPSG:100018": "(100018) TM-POA",
 }
 
 # CSW settings
